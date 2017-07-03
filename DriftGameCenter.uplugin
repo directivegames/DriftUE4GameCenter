@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "Drift GameCenter",
+	"Description": "Integration with Apple's Game Center platform",
+	"Category": "Other",
+	"CreatedBy": "Directive Games Limited",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"Modules": [
+		{
+			"Name": "DriftGameCenter",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+            "WhitelistPlatforms": [
+                "iOS"
+            ]
+		}
+	],
+	"EnabledByDefault": false,
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"WhitelistPlatforms": [
+		"iOS"
+	]
+}
