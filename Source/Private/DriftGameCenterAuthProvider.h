@@ -3,6 +3,7 @@
 #include "IDriftAuthProvider.h"
 
 #include "Base64.h"
+#include "OnlineSubsystemTypes.h"
 
 #include <GameKit/GKLocalPlayer.h>
 
@@ -34,7 +35,7 @@ private:
     struct FGameCenterVerficationData
     {
         FGameCenterVerficationData(NSURL* publicKeyUrl, NSData* signature, NSData* salt, uint64_t timestamp, GKLocalPlayer* localPlayer)
-            : timestamp{ timestamp },
+            : timestamp{ timestamp }
             , public_key_url{ publicKeyUrl.absoluteString }
             , player_id{ localPlayer.playerID }
             , player_name{ localPlayer.alias }
@@ -53,6 +54,7 @@ private:
 
         uint64_t timestamp{ 0 };
         FString public_key_url;
+        FString signature;
         FString salt;
         FString player_id;
         FString player_name;
