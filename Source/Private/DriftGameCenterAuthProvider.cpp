@@ -118,7 +118,7 @@ void FDriftGameCenterAuthProvider::FillProviderDetails(DetailsAppender appender)
     appender(TEXT("public_key_url"), data.public_key_url);
     appender(TEXT("signature"), data.signature);
     appender(TEXT("salt"), data.salt);
-    appender(TEXT("timestamp"), FString::Printf(TEXT("%d"), data.timestamp));
+    appender(TEXT("timestamp"), FString::Printf(TEXT("%lld"), data.timestamp));
     appender(TEXT("player_id"), data.player_id);
     appender(TEXT("player_name"), data.player_name);
     appender(TEXT("app_bundle_id"), data.app_bundle_id);
