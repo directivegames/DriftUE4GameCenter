@@ -2,7 +2,7 @@
 #include "DriftGameCenterPCH.h"
 
 #include "DriftGameCenterAuthProvider.h"
-#include "IErrorReporter.h"
+//#include "IErrorReporter.h"
 
 #include "OnlineSubsystemTypes.h"
 #include "OnlineSubsystemUtils.h"
@@ -218,11 +218,14 @@ void FDriftGameCenterAuthProvider::GetIdentityValidationData()
                 // TODO: Handle if the connection has been reset since the task begun
                 if (error != nil)
                 {
+/*
                     auto extra = MakeShared<FJsonObject>();
                     extra->SetStringField(L"error_code", int32(error.code));
                     extra->SetStringField(L"error_domain", FString(error.domain));
                     extra->SetStringField(L"error_localized", FString(error.localizedDescription));
                     IErrorReporter::Get()->AddError("LogDriftGameCenter" TEXT("Failed to generate verification signature"), extra);
+ */
+                    UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to generate verification signature: %d, %s"), int32(error.code), (FString(error.domain)));
                     callback(false);
                 }
                 else
