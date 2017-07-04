@@ -25,7 +25,7 @@ public:
 private:
     void OnLoginComplete(int32 localPlayerNum, bool success, const FUniqueNetId& userID, const FString& error, InitCredentialsCallback callback);
     void OnLoginUIClosed(TSharedPtr<const FUniqueNetId> UniqueId, int LocalPlayerNum, InitCredentialsCallback callback);
-    void GetIdentityValidationData();
+    void GetIdentityValidationData(InitCredentialsCallback callback);
 
 private:
     FDelegateHandle loginCompleteDelegateHandle;
@@ -34,6 +34,8 @@ private:
 
     struct FGameCenterVerficationData
     {
+        FGameCenterVerficationData() = default;
+
         FGameCenterVerficationData(NSURL* publicKeyUrl, NSData* signature, NSData* salt, uint64_t timestamp, GKLocalPlayer* localPlayer)
             : timestamp{ timestamp }
             , public_key_url{ publicKeyUrl.absoluteString }

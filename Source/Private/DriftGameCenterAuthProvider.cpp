@@ -40,9 +40,9 @@ void FDriftGameCenterAuthProvider::InitCredentials(InitCredentialsCallback callb
             loginCompleteDelegateHandle = identityInterface->AddOnLoginCompleteDelegate_Handle(localUserNum,
                 FOnLoginCompleteDelegate::CreateSP(this, &FDriftGameCenterAuthProvider::OnLoginComplete, callback));
             auto externalUIInterface = Online::GetExternalUIInterface(nullptr, IOS_SUBSYSTEM);
-            if (externalUIinterface.IsValid())
+            if (externalUIInterface.IsValid())
             {
-                if (!externalUIinterface->ShowLoginUI(localUserNum, true, false,
+                if (!externalUIInterface->ShowLoginUI(localUserNum, true, false,
                     FOnLoginUIClosedDelegate::CreateSP(this, &FDriftGameCenterAuthProvider::OnLoginUIClosed, callback)))
                 {
                     UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to show external login UI"));
@@ -118,7 +118,7 @@ void FDriftGameCenterAuthProvider::FillProviderDetails(DetailsAppender appender)
     appender(TEXT("public_key_url"), data.public_key_url);
     appender(TEXT("signature"), data.signature);
     appender(TEXT("salt"), data.salt);
-    appender(TEXT("timestamp"), data.timestamp);
+    appender(TEXT("timestamp"), FString::Printf(TEXT("%d"), data.timestamp));
     appender(TEXT("player_id"), data.player_id);
     appender(TEXT("player_name"), data.player_name);
     appender(TEXT("app_bundle_id"), data.app_bundle_id);
@@ -127,7 +127,7 @@ void FDriftGameCenterAuthProvider::FillProviderDetails(DetailsAppender appender)
 
 FString FDriftGameCenterAuthProvider::GetNickname()
 {
-    auto identityInterface = Online::GetIdentityInterface(nullptr, STEAM_SUBSYSTEM);
+    auto identityInterface = Online::GetIdentityInterface(nullptr, IOS_SUBSYSTEM);
     if (identityInterface.IsValid() && identityInterface->GetLoginStatus(0) == ELoginStatus::LoggedIn)
     {
         return identityInterface->GetPlayerNickname(0);
@@ -148,11 +148,11 @@ void FDriftGameCenterAuthProvider::GetAvatarUrl(GetAvatarUrlCallback callback)
 }
 
 
-void FDriftGameCenterProvider::OnLoginComplete(int32 localPlayerNum, bool success, const FUniqueNetId& userID, const FString& error, InitCredentialsCallback callback)
+void FDriftGameCenterAuthProvider::OnLoginComplete(int32 localPlayerNum, bool success, const FUniqueNetId& userID, const FString& error, InitCredentialsCallback callback)
 {
     if (success)
     {
-        auto identityInterface = Online::GetIdentityInterface(nullptr, GOOGLEPLAY_SUBSYSTEM);
+        auto identityInterface = Online::GetIdentityInterface(nullptr, IOS_SUBSYSTEM);
         if (identityInterface.IsValid())
         {
             identityInterface->ClearOnLoginCompleteDelegate_Handle(localPlayerNum, loginCompleteDelegateHandle);
@@ -163,27 +163,27 @@ void FDriftGameCenterProvider::OnLoginComplete(int32 localPlayerNum, bool succes
                 if (id.IsValid())
                 {
                     gameCenterID = id->ToString();
-                    GetIdentityValidationData();
+                    GetIdentityValidationData(callback);
                     return;
                 }
                 else
                 {
-                    UE_LOG(LogDriftGooglePlay, Error, TEXT("Failed to get unique player ID"));
+                    UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to get unique player ID"));
                 }
             }
             else
             {
-                UE_LOG(LogDriftGooglePlay, Error, TEXT("Login status is not LoggedIn"));
+                UE_LOG(LogDriftGameCenter, Error, TEXT("Login status is not LoggedIn"));
             }
         }
         else
         {
-            UE_LOG(LogDriftGooglePlay, Error, TEXT("Failed to get online user identity interface"));
+            UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to get online user identity interface"));
         }
     }
     else
     {
-        UE_LOG(LogDriftGooglePlay, Error, TEXT("Failed to login to Game Center: %s"), *error);
+        UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to login to Game Center: %s"), *error);
     }
 
     callback(false);
@@ -204,13 +204,12 @@ void FDriftGameCenterAuthProvider::OnLoginUIClosed(TSharedPtr<const FUniqueNetId
 }
 
 
-void FDriftGameCenterAuthProvider::GetIdentityValidationData()
+void FDriftGameCenterAuthProvider::GetIdentityValidationData(InitCredentialsCallback callback)
 {
-    auto player = [GLocalPlayer localPlayer];
+    auto player = [GKLocalPlayer localPlayer];
     if (player.isAuthenticated)
     {
-        OnLoginComplete
-            [player generateIdentityVerificationSignatureWithCompletionHandler : ^ (NSURL* pulicKeyUrl, NSData* salt, uint64_t timestamp, NSError* error)
+        [player generateIdentityVerificationSignatureWithCompletionHandler : ^ (NSURL* publicKeyUrl, NSData* signature, NSData* salt, uint64_t timestamp, NSError* error)
         {
             // The iOS main thread is not the same as the UE4 main thread
             [FIOSAsyncTask CreateTaskWithBlock : ^ bool(void)
@@ -225,7 +224,7 @@ void FDriftGameCenterAuthProvider::GetIdentityValidationData()
                     extra->SetStringField(L"error_localized", FString(error.localizedDescription));
                     IErrorReporter::Get()->AddError("LogDriftGameCenter" TEXT("Failed to generate verification signature"), extra);
  */
-                    UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to generate verification signature: %d, %s"), int32(error.code), (FString(error.domain)));
+                    UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to generate verification signature: %d, %s"), int32(error.code), *FString(error.domain));
                     callback(false);
                 }
                 else
@@ -236,5 +235,9 @@ void FDriftGameCenterAuthProvider::GetIdentityValidationData()
                 return true;
             }];
         }];
+    }
+    else
+    {
+        callback(false);
     }
 }
