@@ -32,6 +32,8 @@ void FDriftGameCenterAuthProvider::InitCredentials(InitCredentialsCallback callb
             }
             else
             {
+                UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to get a valid user ID from Game Center"));
+
                 callback(false);
             }
         }
@@ -60,10 +62,10 @@ void FDriftGameCenterAuthProvider::InitCredentials(InitCredentialsCallback callb
     }
     else
     {
-        UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to login to Steam"));
-    }
+        UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to to get identity interface for Game Center"));
 
-    callback(false);
+        callback(false);
+    }
 }
 
 
