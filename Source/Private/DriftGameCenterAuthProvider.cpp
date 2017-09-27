@@ -39,8 +39,6 @@ void FDriftGameCenterAuthProvider::InitCredentials(InitCredentialsCallback callb
         }
         else
         {
-            loginCompleteDelegateHandle = identityInterface->AddOnLoginCompleteDelegate_Handle(localUserNum,
-                FOnLoginCompleteDelegate::CreateSP(this, &FDriftGameCenterAuthProvider::OnLoginComplete, callback));
             auto externalUIInterface = Online::GetExternalUIInterface(nullptr, IOS_SUBSYSTEM);
             if (externalUIInterface.IsValid())
             {
@@ -197,11 +195,11 @@ void FDriftGameCenterAuthProvider::OnLoginUIClosed(TSharedPtr<const FUniqueNetId
     bool success = UniqueId.IsValid();
     if (success)
     {
-        OnLoginComplete(LocalPlayerNum, success, *UniqueId, FString(TEXT("")), callback);
+        OnLoginComplete(LocalPlayerNum, success, *UniqueId, FString{}, callback);
     }
     else
     {
-        OnLoginComplete(LocalPlayerNum, success, FUniqueNetIdString(TEXT("")), FString(TEXT("")), callback);
+        OnLoginComplete(LocalPlayerNum, success, FUniqueNetIdString{FString{}}, FString{}, callback);
     }
 }
 
