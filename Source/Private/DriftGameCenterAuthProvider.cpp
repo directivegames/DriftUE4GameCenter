@@ -69,7 +69,6 @@ void FDriftGameCenterAuthProvider::InitCredentials(InitCredentialsCallback callb
 
 void FDriftGameCenterAuthProvider::GetFriends(GetFriendsCallback callback)
 {
-/*
     auto friendsInterface = Online::GetFriendsInterface(nullptr, IOS_SUBSYSTEM);
     if (friendsInterface.IsValid())
     {
@@ -108,7 +107,6 @@ void FDriftGameCenterAuthProvider::GetFriends(GetFriendsCallback callback)
     {
         UE_LOG(LogDriftGameCenter, Warning, TEXT("Failed to get online friends interface"));
     }
-    */
     callback(false, TArray<TSharedRef<FOnlineFriend>>{});
 }
 
