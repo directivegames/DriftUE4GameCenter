@@ -8,6 +8,8 @@
 #include <GameKit/GKLocalPlayer.h>
 
 
+struct FOnlineError;
+
 class FDriftGameCenterAuthProvider : public IDriftAuthProvider
 {
 public:
@@ -24,7 +26,7 @@ public:
     
 private:
     void OnLoginComplete(int32 localPlayerNum, bool success, const FUniqueNetId& userID, const FString& error, InitCredentialsCallback callback);
-    void OnLoginUIClosed(TSharedPtr<const FUniqueNetId> UniqueId, int LocalPlayerNum, InitCredentialsCallback callback);
+    void OnLoginUIClosed(TSharedPtr<const FUniqueNetId> UniqueId, int LocalPlayerNum, const FOnlineError& Error, InitCredentialsCallback callback);
     void GetIdentityValidationData(InitCredentialsCallback callback);
 
 private:
