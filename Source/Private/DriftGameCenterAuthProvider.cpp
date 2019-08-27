@@ -1,7 +1,6 @@
 
-#include "DriftGameCenterPCH.h"
-
 #include "DriftGameCenterAuthProvider.h"
+
 //#include "IErrorReporter.h"
 
 #include "OnlineSubsystemTypes.h"
@@ -188,7 +187,7 @@ void FDriftGameCenterAuthProvider::OnLoginComplete(int32 localPlayerNum, bool su
 }
 
 
-void FDriftGameCenterAuthProvider::OnLoginUIClosed(TSharedPtr<const FUniqueNetId> UniqueId, int LocalPlayerNum, InitCredentialsCallback callback)
+void FDriftGameCenterAuthProvider::OnLoginUIClosed(TSharedPtr<const FUniqueNetId> UniqueId, int LocalPlayerNum, const FOnlineError& Error, InitCredentialsCallback callback)
 {
     bool success = UniqueId.IsValid();
     if (success)
