@@ -8,7 +8,7 @@ public class DriftGameCenter : ModuleRules
 	public DriftGameCenter(ReadOnlyTargetRules TargetRules) : base(TargetRules)
     {
 		bEnableShadowVariableWarnings = false;
-		PCHUsage = PCHUsageMode.NoSharedPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(
 			new string[] {
