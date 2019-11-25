@@ -4,7 +4,7 @@
 
 #include "DriftGameCenterAuthProviderFactory.h"
 
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 
 
 class FDriftGameCenterModule : public IModuleInterface

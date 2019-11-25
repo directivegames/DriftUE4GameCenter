@@ -1,7 +1,7 @@
 
 #include "DriftGameCenterModule.h"
 
-#include "IPluginManager.h"
+#include "Interfaces/IPluginManager.h"
 #include "Features/IModularFeatures.h"
 
 

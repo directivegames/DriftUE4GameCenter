@@ -3,6 +3,7 @@
 
 
 #include "IDriftAuthProviderFactory.h"
+#include "Templates/UniquePtr.h"
 
 
 class FDriftGameCenterAuthProviderFactory : public IDriftAuthProviderFactory
