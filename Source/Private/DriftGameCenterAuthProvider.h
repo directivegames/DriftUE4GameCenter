@@ -2,7 +2,7 @@
 
 #include "IDriftAuthProvider.h"
 
-#include "Base64.h"
+#include "Misc/Base64.h"
 #include "OnlineSubsystemTypes.h"
 #include "OnlineError.h"
 
