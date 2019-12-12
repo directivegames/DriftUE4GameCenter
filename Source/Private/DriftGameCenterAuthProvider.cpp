@@ -216,9 +216,9 @@ void FDriftGameCenterAuthProvider::GetIdentityValidationData(InitCredentialsCall
                 {
 /*
                     auto extra = MakeShared<FJsonObject>();
-                    extra->SetStringField(L"error_code", int32(error.code));
-                    extra->SetStringField(L"error_domain", FString(error.domain));
-                    extra->SetStringField(L"error_localized", FString(error.localizedDescription));
+                    extra->SetStringField(TEXT("error_code"), int32(error.code));
+                    extra->SetStringField(TEXT("error_domain"), FString(error.domain));
+                    extra->SetStringField(TEXT("error_localized"), FString(error.localizedDescription));
                     IErrorReporter::Get()->AddError("LogDriftGameCenter" TEXT("Failed to generate verification signature"), extra);
  */
                     UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to generate verification signature: %d, %s"), int32(error.code), *FString(error.domain));

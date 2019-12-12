@@ -12,14 +12,12 @@ public class DriftGameCenter : ModuleRules
 
         PublicIncludePaths.AddRange(
 			new string[] {
-				"DriftGameCenter/Public",		
 			}
 			);
 				
 
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"DriftGameCenter/Private",
 			}
 			);
 
