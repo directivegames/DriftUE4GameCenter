@@ -7,7 +7,12 @@ public class DriftGameCenter : ModuleRules
 {
 	public DriftGameCenter(ReadOnlyTargetRules TargetRules) : base(TargetRules)
     {
+#if UE_4_24_OR_LATER
+		ShadowVariableWarningLevel = WarningLevel.Off;
+#else
 		bEnableShadowVariableWarnings = false;
+#endif
+
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(
