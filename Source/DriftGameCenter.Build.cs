@@ -47,5 +47,14 @@ public class DriftGameCenter : ModuleRules
                 "Drift",
             }
             );
+
+        if (TargetRules.Platform == UnrealTargetPlatform.Mac) {
+            PublicFrameworks.AddRange(
+                new string[]
+                {
+                    "Gamekit",
+                }
+            );
+        }
     }
 }

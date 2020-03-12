@@ -6,6 +6,11 @@
 #include "OnlineSubsystemTypes.h"
 #include "OnlineSubsystemUtils.h"
 
+#if PLATFORM_MAC
+#include <GameKit/GameKit.h>
+#include "Mac/CocoaThread.h"
+#endif
+
 
 DEFINE_LOG_CATEGORY_STATIC(LogDriftGameCenter, Log, All);
 
@@ -18,7 +23,7 @@ FDriftGameCenterAuthProvider::FDriftGameCenterAuthProvider()
 void FDriftGameCenterAuthProvider::InitCredentials(InitCredentialsCallback callback)
 {
     const auto localUserNum = 0;
-
+#if PLATFORM_IOS || PLATFORM_TVOS
     auto identityInterface = Online::GetIdentityInterface(nullptr, IOS_SUBSYSTEM);
     if (identityInterface.IsValid())
     {
@@ -63,6 +68,59 @@ void FDriftGameCenterAuthProvider::InitCredentials(InitCredentialsCallback callb
 
         callback(false);
     }
+#elif PLATFORM_MAC
+    /**
+     * This is more or less a straight copy out of OnlineIdentityIOS, since getting that to build on Mac will be a lot more work
+     */
+    auto player = [GKLocalPlayer localPlayer];
+    if (player && player.isAuthenticated)
+    {
+        const auto playerID = FString{ player.playerID };
+        UE_LOG(LogDriftGameCenter, Log, TEXT("Got Game Center user: %s"), *playerID);
+        OnLoginComplete(localUserNum, true, FUniqueNetIdString{ playerID }, TEXT(""), callback);
+    }
+    else
+    {
+        UE_LOG(LogDriftGameCenter, Log, TEXT("Attempting to log in to Game Center..."));
+
+        // Mac main thread, not UE4
+        MainThreadCall(^
+        {
+            [[GKLocalPlayer localPlayer] setAuthenticateHandler: (^(NSViewController* viewController, NSError* Error)
+            {
+                UE_LOG(LogDriftGameCenter, Log, TEXT("Game Center authenticateHandler..."));
+
+                bool bSuccess = false;
+                FString playerID;
+                FString ErrorMessage;
+                if (viewController == nil)
+                {
+                    if ([GKLocalPlayer localPlayer].isAuthenticated == YES)
+                    {
+                        playerID = player.playerID;
+                        bSuccess = true;
+                    }
+                    else
+                    {
+                        if (Error)
+                        {
+                            ErrorMessage = FString{ [Error localizedDescription] };
+                        }
+                        UE_LOG(LogDriftGameCenter, Error, TEXT("Game Center authentication failed: %s"), *ErrorMessage);
+                    }
+                    OnLoginComplete(localUserNum, bSuccess, FUniqueNetIdString{ playerID }, ErrorMessage, callback);
+                }
+                else
+                {
+                    auto presenter = [GKDialogController sharedDialogController];
+                    presenter.parentWindow = [NSApp keyWindow];
+                    [presenter presentViewController: (NSViewController<GKViewController>*)viewController];
+                }
+            })];
+        }, NSDefaultRunLoopMode, false);
+    }
+    
+#endif
 }
 
 
@@ -124,11 +182,23 @@ void FDriftGameCenterAuthProvider::FillProviderDetails(DetailsAppender appender)
 
 FString FDriftGameCenterAuthProvider::GetNickname()
 {
+#if PLATFORM_IOS || PLATFORM_TVOS
     auto identityInterface = Online::GetIdentityInterface(nullptr, IOS_SUBSYSTEM);
     if (identityInterface.IsValid() && identityInterface->GetLoginStatus(0) == ELoginStatus::LoggedIn)
     {
         return identityInterface->GetPlayerNickname(0);
     }
+#elif PLATFORM_APPLE
+    auto player = [GKLocalPlayer localPlayer];
+    if (player.isAuthenticated)
+    {
+        const auto alias = [player alias];
+        if (alias)
+        {
+            return FString { alias };
+        }
+    }
+#endif
     return TEXT("");
 }
 
@@ -149,6 +219,7 @@ void FDriftGameCenterAuthProvider::OnLoginComplete(int32 localPlayerNum, bool su
 {
     if (success)
     {
+#if PLATFORM_IOS || PLATFORM_TVOS
         auto identityInterface = Online::GetIdentityInterface(nullptr, IOS_SUBSYSTEM);
         if (identityInterface.IsValid())
         {
@@ -177,6 +248,19 @@ void FDriftGameCenterAuthProvider::OnLoginComplete(int32 localPlayerNum, bool su
         {
             UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to get online user identity interface"));
         }
+#elif PLATFORM_MAC
+        auto player = [GKLocalPlayer localPlayer];
+        if (player.isAuthenticated)
+        {
+            gameCenterID = FString{ player.playerID };
+            GetIdentityValidationData(callback);
+            return;
+        }
+        else
+        {
+            UE_LOG(LogDriftGameCenter, Error, TEXT("Login status is not LoggedIn"));
+        }
+#endif
     }
     else
     {
@@ -206,8 +290,9 @@ void FDriftGameCenterAuthProvider::GetIdentityValidationData(InitCredentialsCall
     auto player = [GKLocalPlayer localPlayer];
     if (player.isAuthenticated)
     {
-        [player generateIdentityVerificationSignatureWithCompletionHandler : ^ (NSURL* publicKeyUrl, NSData* signature, NSData* salt, uint64_t timestamp, NSError* error)
+        [player generateIdentityVerificationSignatureWithCompletionHandler: (^(NSURL* publicKeyUrl, NSData* signature, NSData* salt, uint64_t timestamp, NSError* error)
         {
+#if PLATFORM_IOS || PLATFORM_TVOS
             // The iOS main thread is not the same as the UE4 main thread
             [FIOSAsyncTask CreateTaskWithBlock : ^ bool(void)
             {
@@ -231,7 +316,26 @@ void FDriftGameCenterAuthProvider::GetIdentityValidationData(InitCredentialsCall
                 }
                 return true;
             }];
-        }];
+#elif PLATFORM_MAC
+            UE_LOG(LogDriftGameCenter, Log, TEXT("Got verification data"));
+
+            const int32 errorCode = error ? error.code : 0;
+            const auto errorDomain = error ? FString{ error.domain } : FString{};
+            AsyncTask(ENamedThreads::GameThread, [this, verificationData = FGameCenterVerficationData{ publicKeyUrl, signature, salt, timestamp, player }, errorCode, errorDomain, callback]()
+            {
+                if (errorCode != 0 || !errorDomain.IsEmpty())
+                {
+                    UE_LOG(LogDriftGameCenter, Error, TEXT("Failed to generate verification signature: %d, %s"), errorCode, *errorDomain);
+                    callback(false);
+                }
+                else
+                {
+                    data = verificationData;
+                    callback(true);
+                }
+            });
+#endif
+        })];
     }
     else
     {
