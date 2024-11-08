@@ -15,7 +15,7 @@ public:
     FDriftGameCenterAuthProvider();
 
     FString GetProviderName() const override { return TEXT("gamecenter"); }
-    void InitCredentials(InitCredentialsCallback callback) override;
+    void InitCredentials(const FAuthenticationSettings& AuthenticationSettings, InitCredentialsCallback callback) override;
     void GetFriends(GetFriendsCallback callback) override;
     void GetAvatarUrl(GetAvatarUrlCallback callback) override;
     void FillProviderDetails(DetailsAppender appender) const override;

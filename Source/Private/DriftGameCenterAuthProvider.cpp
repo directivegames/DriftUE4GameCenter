@@ -15,7 +15,7 @@ FDriftGameCenterAuthProvider::FDriftGameCenterAuthProvider()
 }
 
 
-void FDriftGameCenterAuthProvider::InitCredentials(InitCredentialsCallback callback)
+void FDriftGameCenterAuthProvider::InitCredentials(const FAuthenticationSettings& AuthenticationSettings, InitCredentialsCallback callback)
 {
     const auto localUserNum = 0;
 
